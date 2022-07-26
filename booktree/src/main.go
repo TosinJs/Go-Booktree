@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
+	"os"
+	"tosinjs/go-booktree/pkg/logger"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -12,10 +13,11 @@ import (
 
 type application struct {
 	bookCollection *mongo.Collection
+	logger         *logger.Logger
 }
 
 func main() {
-
+	logger := logger.New(os.Stdout, logger.LevelInfo)
 	client := connectDB()
 	defer client.Disconnect(context.TODO())
 
@@ -23,23 +25,26 @@ func main() {
 
 	app := &application{
 		bookCollection: bc,
+		logger:         logger,
 	}
 
 	if err := http.ListenAndServe(":3000", app.router()); err != nil {
-		log.Fatal(err)
+		logger.PrintFatal(err, nil)
 	}
 }
 
 func connectDB() *mongo.Client {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("lmaofraudman"))
+	logger := logger.New(os.Stdout, logger.LevelInfo)
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("lmao"))
 	if err != nil {
-		log.Fatal(err)
+		logger.PrintFatal(err, nil)
 		panic(err)
 	}
 	err = client.Ping(context.TODO(), readpref.Primary())
 	if err != nil {
-		log.Fatal(err)
+		logger.PrintFatal(err, nil)
+		panic(err)
 	}
-	log.Println("Successfully Connected to the Database")
+	logger.PrintInfo("Successfully Connected to the Database", nil)
 	return client
 }

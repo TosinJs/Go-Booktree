@@ -1,6 +1,8 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type Book struct {
 	Id          primitive.ObjectID `json:"id,omitempty"`
@@ -8,8 +10,4 @@ type Book struct {
 	Author      string             `json:"author,omitempty" validate:"required"`
 	Description string             `json:"description,omitempty" validate:"required"`
 	Genre       []string           `json:"genre,omitempty" validate:"required"`
-}
-
-func (book *Book) Insert() {
-
 }

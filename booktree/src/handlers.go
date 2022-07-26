@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"tosinjs/go-booktree/pkg/models"
 
+	"github.com/go-playground/validator"
 	"github.com/julienschmidt/httprouter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,26 +15,38 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request, 
 	books, err := app.bookCollection.Find(context.TODO(), bson.M{})
 	gotBooks := []models.Book{}
 	if err != nil {
-		log.Fatal(err)
+		app.notFoundResponse(w, r)
+		return
 	}
 	for books.Next(context.TODO()) {
 		var book models.Book
 		books.Decode(&book)
 		gotBooks = append(gotBooks, book)
 	}
-	app.writeJSON(w, http.StatusOK, gotBooks, nil)
+	err = app.writeJSON(w, http.StatusOK, gotBooks, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }
 
 func (app *application) createBookHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var input struct {
-		Name        string   `json:"name"`
-		Author      string   `json:"author"`
-		Description string   `json:"description"`
-		Genre       []string `json:"genre"`
+		Name        string   `json:"name" validate:"required"`
+		Author      string   `json:"author" validate:"required"`
+		Description string   `json:"description" validate:"required"`
+		Genre       []string `json:"genre" validate:"required"`
 	}
 	err := app.readJSON(w, r, &input)
 	if err != nil {
-		log.Fatal(err)
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	validate := validator.New()
+	err = validate.Struct(input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
 	}
 	book := models.Book{
 		Id:          primitive.NewObjectID(),
@@ -45,11 +57,13 @@ func (app *application) createBookHandler(w http.ResponseWriter, r *http.Request
 	}
 	_, err = app.bookCollection.InsertOne(context.TODO(), book)
 	if err != nil {
-		log.Fatal(err)
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 	err = app.writeJSON(w, http.StatusOK, book, nil)
 	if err != nil {
-		log.Fatal(err)
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 }
 
@@ -59,11 +73,13 @@ func (app *application) getBookHandler(w http.ResponseWriter, r *http.Request, p
 	var book models.Book
 	err := app.bookCollection.FindOne(context.TODO(), bson.M{"id": idHex}).Decode(&book)
 	if err != nil {
-		log.Fatal(err)
+		app.notFoundResponse(w, r)
+		return
 	}
 	err = app.writeJSON(w, http.StatusFound, book, nil)
 	if err != nil {
-		log.Fatal(err)
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 }
 
@@ -82,10 +98,12 @@ func (app *application) deleteBookHandler(w http.ResponseWriter, r *http.Request
 	idHex, _ := primitive.ObjectIDFromHex(id)
 	_, err := app.bookCollection.DeleteOne(context.TODO(), bson.M{"id": idHex})
 	if err != nil {
-		log.Fatal(err)
+		app.notFoundResponse(w, r)
+		return
 	}
 	err = app.writeJSON(w, http.StatusOK, map[string]string{"message": "Successfully Deleted"}, nil)
 	if err != nil {
-		log.Fatal(err)
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 }

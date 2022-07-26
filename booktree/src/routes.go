@@ -15,5 +15,5 @@ func (app *application) router() http.Handler {
 	router.PUT("/books/:id", app.updateBookHandler)
 	router.DELETE("/books/:id", app.deleteBookHandler)
 
-	return router
+	return app.logRequests(router)
 }
