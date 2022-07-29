@@ -36,3 +36,23 @@ func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Reque
 func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
 }
+
+func (app *application) duplicateUsernameErrorResponse(w http.ResponseWriter, r *http.Request) {
+	message := "this username is in use"
+	app.errorResponse(w, r, http.StatusBadRequest, message)
+}
+
+func (app *application) invalidUserErrorResponse(w http.ResponseWriter, r *http.Request) {
+	message := "invalid user credentials"
+	app.errorResponse(w, r, http.StatusBadRequest, message)
+}
+
+func (app *application) authenticationRequiredResponse(w http.ResponseWriter, r *http.Request) {
+	message := "you must be authenticated to access this resource"
+	app.errorResponse(w, r, http.StatusUnauthorized, message)
+}
+
+func (app *application) invalidAuthResponse(w http.ResponseWriter, r *http.Request) {
+	message := "invalid authentication credentials"
+	app.errorResponse(w, r, http.StatusUnauthorized, message)
+}

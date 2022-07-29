@@ -13,6 +13,7 @@ import (
 
 type application struct {
 	bookCollection *mongo.Collection
+	userCollection *mongo.Collection
 	logger         *logger.Logger
 }
 
@@ -22,9 +23,11 @@ func main() {
 	defer client.Disconnect(context.TODO())
 
 	bc := client.Database("booktree").Collection("books")
+	uc := client.Database("booktree").Collection("users")
 
 	app := &application{
 		bookCollection: bc,
+		userCollection: uc,
 		logger:         logger,
 	}
 
