@@ -82,7 +82,6 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request, _ h
 		return
 	}
 	user := models.User{
-		Id:       primitive.NewObjectID(),
 		Username: input.Username,
 		Password: input.Password,
 	}

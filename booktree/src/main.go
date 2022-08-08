@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"flag"
+	"fmt"
 	"net/http"
 	"os"
 	"tosinjs/go-booktree/pkg/logger"
@@ -11,6 +13,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+var mongoURI string
+var port string
+
 type application struct {
 	bookCollection *mongo.Collection
 	userCollection *mongo.Collection
@@ -18,6 +23,10 @@ type application struct {
 }
 
 func main() {
+	flag.StringVar(&mongoURI, "mongoURI", "", "Enter a Valid MongoURI")
+	flag.StringVar(&port, "port", "8080", "HTTP Port to Start the Server")
+	flag.Usage()
+	flag.Parse()
 	logger := logger.New(os.Stdout, logger.LevelInfo)
 	client := connectDB()
 	defer client.Disconnect(context.TODO())
@@ -31,14 +40,14 @@ func main() {
 		logger:         logger,
 	}
 
-	if err := http.ListenAndServe(":3000", app.router()); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), app.router()); err != nil {
 		logger.PrintFatal(err, nil)
 	}
 }
 
 func connectDB() *mongo.Client {
 	logger := logger.New(os.Stdout, logger.LevelInfo)
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("lmao"))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		logger.PrintFatal(err, nil)
 		panic(err)
