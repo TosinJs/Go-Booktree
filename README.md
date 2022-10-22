@@ -1,4 +1,4 @@
-# Go-Booktree ("Vanilla Go vs Gin for Building API's)
+# Go-Booktree ("Vanilla Go" vs Gin for Building API's)
 This is a simple API service for a library application. 
 It contains routes to get, edit, delete and add books to a library.
 Its also contains JWT authentication services.
